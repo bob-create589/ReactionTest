@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reaction Time Tester</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #1e1e1e;
+      color: white;
+      margin-top: 100px;
+    }
+    #box {
+      width: 400px;
+      height: 200px;
+      margin: 50px auto;
+      background-color: #444;
+      line-height: 200px;
+      font-size: 24px;
+      border-radius: 20px;
+      transition: background-color 0.2s;
+    }
+  </style>
+</head>
+<body>
+  <h1>Reaction Time Test</h1>
+  <p>Wait until the box turns <strong>green</strong>, then press <strong>"W"</strong> as fast as you can!</p>
+  <div id="box">Wait for green...</div>
+  <p id="result"></p>
+
+  <script>
+    let box = document.getElementById('box');
+    let result = document.getElementById('result');
+    let startTime, timeout, waiting = false;
+
+    function startTest() {
+      box.style.backgroundColor = '#444';
+      box.textContent = "Wait for green...";
+      result.textContent = "";
+      waiting = false;
+
+      let delay = Math.random() * 3000 + 2000; // 2–5 seconds
+
+      timeout = setTimeout(() => {
+        box.style.backgroundColor = 'green';
+        box.textContent = "PRESS 'W' NOW!";
+        startTime = Date.now();
+        waiting = true;
+      }, delay);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'w') {
+        if (!waiting) {
+          clearTimeout(timeout);
+          box.style.backgroundColor = 'red';
+          box.textContent = "Too soon!";
+          result.textContent = "You pressed before it turned green.";
+          setTimeout(startTest, 2000);
+        } else {
+          let reaction = Date.now() - startTime;
+          box.style.backgroundColor = '#444';
+          box.textContent = "Good!";
+          result.textContent = `⏱️ Your reaction time: ${reaction} ms`;
+          waiting = false;
+          setTimeout(startTest, 2000);
+        }
+      }
+    });
+
+    startTest();
+  </script>
+</body>
+</html>
