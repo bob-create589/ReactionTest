@@ -1,75 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Reaction Time Tester</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      background-color: #1e1e1e;
-      color: white;
-      margin-top: 100px;
-    }
-    #box {
-      width: 400px;
-      height: 200px;
-      margin: 50px auto;
-      background-color: #444;
-      line-height: 200px;
-      font-size: 24px;
-      border-radius: 20px;
-      transition: background-color 0.2s;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reaction Time Test</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        h1 {
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .game-area {
+            width: 100%;
+            height: 300px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .game-area.waiting {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            animation: pulse 2s infinite;
+        }
+        
+        .game-area.ready {
+            background: linear-gradient(45deg, #51cf66, #69db7c);
+            animation: none;
+        }
+        
+        .game-area.clicked {
+            background: linear-gradient(45deg, #339af0, #74c0fc);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 5px;
+            min-width: 120px;
+        }
+        
+        .stat h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        
+        .stat .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
-  <h1>Reaction Time Test</h1>
-  <p>Wait until the box turns <strong>green</strong>, then press <strong>"W"</strong> as fast as you can!</p>
-  <div id="box">Wait for green...</div>
-  <p id="result"></p>
+    <div class="container">
+        <h1>⚡ Reaction Test ⚡</h1>
+        
+        <div class="instructions">
+            <strong>How to play:</strong><br>
+            Click the red area when it turns <strong style="color: #51cf66;">GREEN</strong>!<br>
+            Don't click too early or you'll have to start over.
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            Click "Start Test" to begin!
+        </div>
+        
+        <div>
+            <button onclick="startTest()" id="startBtn">Start Test</button>
+            <button onclick="resetStats()" id="resetBtn">Reset Stats</button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <h3>Last Time</h3>
+                <div class="value" id="lastTime">-</div>
+            </div>
+            <div class="stat">
+                <h3>Best Time</h3>
+                <div class="value" id="bestTime">-</div>
+            </div>
+            <div class="stat">
+                <h3>Average</h3>
+                <div class="value" id="avgTime">-</div>
+            </div>
+            <div class="stat">
+                <h3>Attempts</h3>
+                <div class="value" id="attempts">0</div>
+            </div>
+        </div>
+    </div>
 
-  <script>
-    let box = document.getElementById('box');
-    let result = document.getElementById('result');
-    let startTime, timeout, waiting = false;
-
-    function startTest() {
-      box.style.backgroundColor = '#444';
-      box.textContent = "Wait for green...";
-      result.textContent = "";
-      waiting = false;
-
-      let delay = Math.random() * 3000 + 2000; // 2–5 seconds
-
-      timeout = setTimeout(() => {
-        box.style.backgroundColor = 'green';
-        box.textContent = "PRESS 'W' NOW!";
-        startTime = Date.now();
-        waiting = true;
-      }, delay);
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key.toLowerCase() === 'w') {
-        if (!waiting) {
-          clearTimeout(timeout);
-          box.style.backgroundColor = 'red';
-          box.textContent = "Too soon!";
-          result.textContent = "You pressed before it turned green.";
-          setTimeout(startTest, 2000);
-        } else {
-          let reaction = Date.now() - startTime;
-          box.style.backgroundColor = '#444';
-          box.textContent = "Good!";
-          result.textContent = `⏱️ Your reaction time: ${reaction} ms`;
-          waiting = false;
-          setTimeout(startTest, 2000);
+    <script>
+        let gameState = 'idle';
+        let startTime = 0;
+        let timeout = null;
+        let attempts = 0;
+        let times = [];
+        let bestTime = null;
+        
+        const gameArea = document.getElementById('gameArea');
+        const startBtn = document.getElementById('startBtn');
+        
+        function startTest() {
+            if (gameState !== 'idle') return;
+            
+            gameState = 'waiting';
+            gameArea.textContent = 'Wait for GREEN...';
+            gameArea.className = 'game-area waiting';
+            startBtn.textContent = 'Testing...';
+            startBtn.disabled = true;
+            
+            // Random delay between 2-6 seconds
+            const delay = Math.random() * 4000 + 2000;
+            
+            timeout = setTimeout(() => {
+                if (gameState === 'waiting') {
+                    gameState = 'ready';
+                    gameArea.textContent = 'CLICK NOW!';
+                    gameArea.className = 'game-area ready';
+                    startTime = performance.now();
+                }
+            }, delay);
         }
-      }
-    });
-
-    startTest();
-  </script>
+        
+        function endTest(reactionTime) {
+            gameState = 'idle';
+            attempts++;
+            times.push(reactionTime);
+            
+            // Update stats
+            document.getElementById('lastTime').textContent = reactionTime + 'ms';
+            document.getElementById('attempts').textContent = attempts;
+            
+            if (bestTime === null || reactionTime < bestTime) {
+                bestTime = reactionTime;
+                document.getElementById('bestTime').textContent = bestTime + 'ms';
+            }
+            
+            const avg = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+            document.getElementById('avgTime').textContent = avg + 'ms';
+            
+            startBtn.textContent = 'Start Test';
+            startBtn.disabled = false;
+            
+            // Show result message
+            let message = '';
+            if (reactionTime < 200) {
+                message = 'Incredible! 🔥';
+            } else if (reactionTime < 250) {
+                message = 'Excellent! 👏';
+            } else if (reactionTime < 300) {
+                message = 'Good! 👍';
+            } else if (reactionTime < 400) {
+                message = 'Not bad! 😊';
+            } else {
+                message = 'Keep practicing! 💪';
+            }
+            
+            gameArea.textContent = `${reactionTime}ms - ${message}`;
+            gameArea.className = 'game-area clicked';
+            
+            setTimeout(() => {
+                if (gameState === 'idle') {
+                    gameArea.textContent = 'Click "Start Test" to try again!';
+                    gameArea.className = 'game-area';
+                }
+            }, 3000);
+        }
+        
+        function resetStats() {
+            attempts = 0;
+            times = [];
+            bestTime = null;
+            document.getElementById('lastTime').textContent = '-';
+            document.getElementById('bestTime').textContent = '-';
+            document.getElementById('avgTime').textContent = '-';
+            document.getElementById('attempts').textContent = '0';
+        }
+        
+        gameArea.addEventListener('click', () => {
+            if (gameState === 'waiting') {
+                // Clicked too early
+                clearTimeout(timeout);
+                gameState = 'idle';
+                gameArea.textContent = 'Too early! Wait for GREEN next time.';
+                gameArea.className = 'game-area';
+                startBtn.textContent = 'Start Test';
+                startBtn.disabled = false;
+                
+                setTimeout(() => {
+                    if (gameState === 'idle') {
+                        gameArea.textContent = 'Click "Start Test" to try again!';
+                    }
+                }, 2000);
+                
+            } else if (gameState === 'ready') {
+                // Good click!
+                const reactionTime = Math.round(performance.now() - startTime);
+                endTest(reactionTime);
+            }
+        });
+    </script>
 </body>
 </html>
